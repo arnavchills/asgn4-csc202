@@ -52,12 +52,11 @@ def hash_count(ht : HashTable) -> int:
 def has_key(ht : HashTable, word : str) -> bool:
   """Return True if ht contains a mapping for word. """
 
-  match ht.bins:
-    case None:
-      pass
-    case WLNode(line, rest):
-      if line.key == word:
-        return True
+  for item in ht.bins:
+    if item != None:
+      for line in item:
+        if line.key == word:
+          return True
   
   return False
 
