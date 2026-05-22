@@ -53,10 +53,13 @@ def has_key(ht : HashTable, word : str) -> bool:
   """Return True if ht contains a mapping for word. """
 
   for item in ht.bins:
-    if item != None:
-      for line in item:
-        if line.key == word:
-          return True
+    current: WordLinesList = item
+
+    while current != None:
+      if current.line.key == word:
+        return True
+
+      current = current.rest
   
   return False
 
@@ -64,14 +67,23 @@ def lookup(ht : HashTable, word : str) -> List[int]:
   """Return the line numbers associated with the key word in ht. 
   The returned list should not contain duplicates but need not be sorted. """
   final_list : List[int] = []
-  for item in ht.bins:
-    if item != None:
-      if item.line.key == word:
-        for val in item.line.value:
-          if val != None:
-            final_list.append(val)
-      else:
-        pass
+
+  for bin in ht.bins:
+    current_word: WordLinesList = bin
+
+    while current_word != None:
+      if current_word.line.key == word:
+        current_line: IntList = current_word.line.value
+
+        while current_line != None:
+          if current_line.line_num not in final_list:
+            final_list.append(current_line.line_num)
+
+          current_line = current_line.rest
+
+      current_word = current_word.rest
+
+  return final_list
     
 def add(ht : HashTable, word : str, line_num : int) -> None:
   """Record in ht that word has an occurence on line line_num. """
