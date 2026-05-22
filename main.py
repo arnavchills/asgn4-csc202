@@ -87,17 +87,21 @@ def lookup(ht : HashTable, word : str) -> List[int]:
     
 def add(ht : HashTable, word : str, line_num : int) -> None:
   """Record in ht that word has an occurence on line line_num. """
-  index : int = hash_fn(word)
-  
-  if ht.bins[index] == None:
-    ht.count += 1
-  else:
-    for item in ht.bins[index]:
-      if item != None:
-        if item.line.key == word:
-          item.line.value += 1
-        else:
-          pass
+  index : int = hash_fn(word) % hash_size(ht)
+
+  current : WordLinesList = ht.bins[index]
+
+  while current != None:
+    if current.line.key == word:
+      if line_num not in lookup(ht, word):
+        current.line.value = IntNode(line_num, current.line.value)
+      return
+
+    current = current.rest
+
+  new_word_lines : WordLines = WordLines(word, IntNode(line_num, None))
+  ht.bins[index] = WLNode(new_word_lines, ht.bins[index])
+  ht.count += 1
 
 def hash_keys(ht : HashTable) -> List[str]:
   """Return the words that have mappings in ht. The returned list should not contain duplicates
@@ -120,18 +124,19 @@ def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
   a sequence of strings lines representing the lines of a document, 
   return a hash table representing a concordance of that document. """
 
-  concordance : HashTable = make_hash(len(lines)*2)
+  concordance : HashTable = make_hash(max(1, len(lines) * 2))
 
   for i in range(len(lines)):
     line_num : int = i + 1
-    words : List[str] = lines[i].split()
 
-    for j in words:
-      clean_word : str = j.lower()
+    clean_line : str = lines[i].lower()
 
-      for char in string.punctuation:
-        clean_word = clean_word.replace(char, "")
+    for char in string.punctuation:
+      clean_line = clean_line.replace(char, " ")
 
+    words : List[str] = clean_line.split()
+
+    for clean_word in words:
       if clean_word != "" and not has_key(stop_words, clean_word):
         if not has_key(concordance, clean_word):
           add(concordance, clean_word, line_num)
@@ -143,8 +148,44 @@ def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
 def full_concordance(in_file : str, stop_words_file : str, out_file : str) -> None:
   # Given an input file path, a stop-words file path, and an output file path,
   # overwrite the indicated output file with a sorted concordance of the input
-  #file.
-  pass
+  # file.
+
+  stop_words : HashTable = make_hash(100)
+
+  with open(stop_words_file, "r") as stop_file:
+    stop_lines : List[str] = stop_file.readlines()
+
+  for line in stop_lines:
+    words : List[str] = line.split()
+
+    for i in words:
+      clean_word : str = i.lower()
+
+      for char in string.punctuation:
+        clean_word = clean_word.replace(char, "")
+
+      if clean_word != "":
+        add(stop_words, clean_word, 0)
+
+  with open(in_file, "r") as input_file:
+    lines : List[str] = input_file.readlines()
+
+  concordance : HashTable = make_concordance(stop_words, lines)
+
+  keys : List[str] = hash_keys(concordance)
+  keys.sort()
+
+  with open(out_file, "w") as output_file:
+    for key in keys:
+      line_nums : List[int] = lookup(concordance, key)
+      line_nums.sort()
+
+      output_file.write(key + ":")
+
+      for line_num in line_nums:
+        output_file.write(" " + str(line_num))
+
+      output_file.write("\n")
 
 # testing variables go here 
 ht_1 : HashTable = HashTable([None, None], 0)
@@ -177,4 +218,5 @@ class Tests(unittest.TestCase):
     pass
 
 if (__name__ == '__main__'):
-  unittest.main()
+  full_concordance("sampletext.txt", "samplestop.txt", "output.txt")
+  #unittest.main()
