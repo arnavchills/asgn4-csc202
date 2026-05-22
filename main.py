@@ -90,20 +90,43 @@ def add(ht : HashTable, word : str, line_num : int) -> None:
 def hash_keys(ht : HashTable) -> List[str]:
   """Return the words that have mappings in ht. The returned list should not contain duplicates
   but need not be sorted. """
-  return_list : List[str] = []
+  return_list: List[str] = []
 
   for item in ht.bins:
-    if item != None:
-      for line in item:
-        if line != None:
-          return_list.append(line.key)
+    current: WordLinesList = item
+
+    while current != None:
+      if current.line.key not in return_list:
+        return_list.append(current.line.key)
+
+      current = current.rest
+
+  return return_list
 
 def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
   """Given a hash table of stop_words, containing stop words as keys, plus
   a sequence of strings lines representing the lines of a document, 
   return a hash table representing a concordance of that document. """
 
-  pass
+  concordance : HashTable = make_hash(len(lines)*2)
+
+  for i in range(len(lines)):
+    line_num : int = i + 1
+    words : List[str] = lines[i].split()
+
+    for j in words:
+      clean_word : str = j.lower()
+
+      for char in string.punctuation:
+        clean_word = clean_word.replace(char, "")
+
+      if clean_word != "" and not has_key(stop_words, clean_word):
+        if not has_key(concordance, clean_word):
+          add(concordance, clean_word, line_num)
+        elif line_num not in lookup(concordance, clean_word):
+          add(concordance, clean_word, line_num)
+        
+  return concordance
 
 def full_concordance(in_file : str, stop_words_file : str, out_file : str) -> None:
   # Given an input file path, a stop-words file path, and an output file path,
