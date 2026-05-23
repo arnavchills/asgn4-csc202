@@ -136,7 +136,10 @@ def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
     clean_line : str = lines[i].lower()
 
     for char in string.punctuation:
-      clean_line = clean_line.replace(char, "")
+      if char == "'":
+        clean_line = clean_line.replace(char, "")
+      else:
+        clean_line = clean_line.replace(char, " ")
 
     words : List[str] = clean_line.split()
 
@@ -230,6 +233,23 @@ class Tests(unittest.TestCase):
     add(ht, "world", 2)
     self.assertEqual(hash_count(ht), 2)
     self.assertEqual(sorted(hash_keys(ht)), ["hello", "world"])
+
+  def test_hash_keys(self):
+    ht : HashTable = make_hash(5)
+    add(ht, "hello", 1)
+    add(ht, "hello", 1)
+    add(ht, "there", 2)
+    self.assertEqual(hash_keys(ht), ["there", "hello"])
+  
+  def test_make_concordance(self):
+    ht_stop : HashTable = make_hash(5)
+    add(ht_stop, "hello", 1)
+    add(ht_stop, "there", 2)
+    l : List[str] = ["hello there", "test testing"]
+    result : HashTable = make_hash(max(1, len(l) * 2))
+    add(result, "test", 2)
+    add(result, "testing", 2)
+    self.assertEqual(make_concordance(ht_stop, l), result)
 
 if (__name__ == '__main__'):
 
