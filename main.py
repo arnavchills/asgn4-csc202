@@ -141,7 +141,7 @@ def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
     words : List[str] = clean_line.split()
 
     for clean_word in words:
-      if clean_word != "" and not has_key(stop_words, clean_word):
+      if clean_word.isalpha() and not has_key(stop_words, clean_word):
         add(concordance, clean_word, line_num)
         
   return concordance
