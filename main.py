@@ -51,16 +51,15 @@ def hash_count(ht : HashTable) -> int:
 
 def has_key(ht : HashTable, word : str) -> bool:
   """Return True if ht contains a mapping for word. """
+  index : int = hash_fn(word) % hash_size(ht)
+  current : WordLinesList = ht.bins[index]
 
-  for item in ht.bins:
-    current: WordLinesList = item
+  while current != None:
+    if current.line.key == word:
+      return True
 
-    while current != None:
-      if current.line.key == word:
-        return True
+    current = current.rest
 
-      current = current.rest
-  
   return False
 
 def lookup(ht : HashTable, word : str) -> List[int]:
@@ -68,20 +67,20 @@ def lookup(ht : HashTable, word : str) -> List[int]:
   The returned list should not contain duplicates but need not be sorted. """
   final_list : List[int] = []
 
-  for bin in ht.bins:
-    current_word: WordLinesList = bin
+  index : int = hash_fn(word) % hash_size(ht)
+  current_word : WordLinesList = ht.bins[index]
 
-    while current_word != None:
-      if current_word.line.key == word:
-        current_line: IntList = current_word.line.value
+  while current_word != None:
+    if current_word.line.key == word:
+      current_line : IntList = current_word.line.value
 
-        while current_line != None:
-          if current_line.line_num not in final_list:
-            final_list.append(current_line.line_num)
+      while current_line != None:
+        final_list.append(current_line.line_num)
+        current_line = current_line.rest
 
-          current_line = current_line.rest
+      return final_list
 
-      current_word = current_word.rest
+    current_word = current_word.rest
 
   return final_list
     
@@ -93,8 +92,15 @@ def add(ht : HashTable, word : str, line_num : int) -> None:
 
   while current != None:
     if current.line.key == word:
-      if line_num not in lookup(ht, word):
-        current.line.value = IntNode(line_num, current.line.value)
+      current_line : IntList = current.line.value
+
+      while current_line != None:
+        if current_line.line_num == line_num:
+          return
+
+        current_line = current_line.rest
+
+      current.line.value = IntNode(line_num, current.line.value)
       return
 
     current = current.rest
@@ -112,9 +118,7 @@ def hash_keys(ht : HashTable) -> List[str]:
     current: WordLinesList = item
 
     while current != None:
-      if current.line.key not in return_list:
-        return_list.append(current.line.key)
-
+      return_list.append(current.line.key)
       current = current.rest
 
   return return_list
@@ -229,5 +233,5 @@ class Tests(unittest.TestCase):
 
 if (__name__ == '__main__'):
 
-  #full_concordance("monte-cristo.txt", "montecristo_stop.txt", "monte-output.txt")
-  unittest.main()
+  full_concordance("monte-cristo.txt", "montecristo_stop.txt", "monte-output.txt")
+  #unittest.main()
