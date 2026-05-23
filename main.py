@@ -136,7 +136,10 @@ def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
     clean_line : str = lines[i].lower()
 
     for char in string.punctuation:
-      clean_line = clean_line.replace(char, "")
+      if char == "'":
+        clean_line = clean_line.replace(char, "")
+      else:
+        clean_line = clean_line.replace(char, " ")
 
     words : List[str] = clean_line.split()
 
@@ -233,5 +236,5 @@ class Tests(unittest.TestCase):
 
 if (__name__ == '__main__'):
 
-  #full_concordance("monte-cristo.txt", "montecristo_stop.txt", "monte-output.txt")
-  unittest.main()
+  full_concordance("monte-cristo.txt", "montecristo_stop.txt", "monte-output.txt")
+  #unittest.main()
