@@ -39,7 +39,7 @@ def hash_fn(s : str) -> int:
 
 def make_hash(size : int) -> HashTable:
   """Make a fresh hash table with size bins containing no elements. """
-  return HashTable([None for i in range(size)], size)
+  return HashTable([None for i in range(size)], 0)
 
 def hash_size(ht : HashTable) -> int:
   """Return the number of bins in ht. """
@@ -138,10 +138,7 @@ def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
 
     for clean_word in words:
       if clean_word != "" and not has_key(stop_words, clean_word):
-        if not has_key(concordance, clean_word):
-          add(concordance, clean_word, line_num)
-        elif line_num not in lookup(concordance, clean_word):
-          add(concordance, clean_word, line_num)
+        add(concordance, clean_word, line_num)
         
   return concordance
 
@@ -152,7 +149,7 @@ def full_concordance(in_file : str, stop_words_file : str, out_file : str) -> No
 
   stop_words : HashTable = make_hash(100)
 
-  with open(stop_words_file, "r") as stop_file:
+  with open(stop_words_file, "r", encoding="utf-8", errors="ignore") as stop_file:
     stop_lines : List[str] = stop_file.readlines()
 
   for line in stop_lines:
@@ -167,7 +164,7 @@ def full_concordance(in_file : str, stop_words_file : str, out_file : str) -> No
       if clean_word != "":
         add(stop_words, clean_word, 0)
 
-  with open(in_file, "r") as input_file:
+  with open(in_file, "r", encoding="utf-8", errors="ignore") as input_file:
     lines : List[str] = input_file.readlines()
 
   concordance : HashTable = make_concordance(stop_words, lines)
@@ -175,7 +172,7 @@ def full_concordance(in_file : str, stop_words_file : str, out_file : str) -> No
   keys : List[str] = hash_keys(concordance)
   keys.sort()
 
-  with open(out_file, "w") as output_file:
+  with open(out_file, "w", encoding="utf-8", errors="ignore") as output_file:
     for key in keys:
       line_nums : List[int] = lookup(concordance, key)
       line_nums.sort()
@@ -197,26 +194,40 @@ class Tests(unittest.TestCase):
     self.assertEqual(hash_fn("a"), 128)
 
   def test_make_hash(self):
-    self.assertEqual(make_hash(3), HashTable([None, None, None], 3))
-    self.assertEqual(make_hash(10), HashTable([None, None, None, None, None, None, None, None, None, None], 10))
-  
+    self.assertEqual(make_hash(3), HashTable([None, None, None], 0))
+    self.assertEqual(make_hash(10), HashTable([None, None, None, None, None, None, None, None, None, None], 0))
+
   def test_hash_size(self):
     self.assertEqual(hash_size(ht_1), 2)
     self.assertEqual(hash_size(ht_2), 10)
-  
+
   def test_hash_count(self):
     self.assertEqual(hash_count(ht_1), 0)
     self.assertEqual(hash_count(ht_2), 0)
-  
+
   def test_has_key(self):
-    pass
+    ht: HashTable = make_hash(5)
+    add(ht, "hello", 1)
+    self.assertTrue(has_key(ht, "hello"))
+    self.assertFalse(has_key(ht, "world"))
 
   def test_lookup(self):
-    pass
+    ht: HashTable = make_hash(5)
+    add(ht, "hello", 1)
+    add(ht, "hello", 2)
+    add(ht, "hello", 2)
+    self.assertEqual(sorted(lookup(ht, "hello")), [1, 2])
+    self.assertEqual(lookup(ht, "missing"), [])
 
   def test_add(self):
-    pass
+    ht: HashTable = make_hash(5)
+    add(ht, "hello", 1)
+    add(ht, "hello", 1)
+    add(ht, "world", 2)
+    self.assertEqual(hash_count(ht), 2)
+    self.assertEqual(sorted(hash_keys(ht)), ["hello", "world"])
 
 if (__name__ == '__main__'):
-  full_concordance("sampletext.txt", "samplestop.txt", "output.txt")
-  #unittest.main()
+
+  #full_concordance("monte-cristo.txt", "montecristo_stop.txt", "monte-output.txt")
+  unittest.main()
