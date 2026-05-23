@@ -253,5 +253,5 @@ class Tests(unittest.TestCase):
 
 if (__name__ == '__main__'):
 
-  #full_concordance("monte-cristo.txt", "montecristo_stop.txt", "monte-output.txt")
-  unittest.main()
+  full_concordance("monte-cristo.txt", "montecristo_stop.txt", "monte-output.txt")
+  #unittest.main()
