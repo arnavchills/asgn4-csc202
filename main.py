@@ -136,7 +136,7 @@ def make_concordance(stop_words : HashTable, lines : List[str]) -> HashTable:
     clean_line : str = lines[i].lower()
 
     for char in string.punctuation:
-      clean_line = clean_line.replace(char, " ")
+      clean_line = clean_line.replace(char, "")
 
     words : List[str] = clean_line.split()
 
